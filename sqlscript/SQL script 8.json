@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 8",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [TABLE_CATALOG]\n,[TABLE_SCHEMA]\n,[TABLE_NAME]\n,[COLUMN_NAME]\n,[CONSTRAINT_CATALOG]\n,[CONSTRAINT_SCHEMA]\n,[CONSTRAINT_NAME]\n FROM [INFORMATION_SCHEMA].[CONSTRAINT_COLUMN_USAGE]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "transactionAnalytics",
+				"poolName": "transactionAnalytics"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

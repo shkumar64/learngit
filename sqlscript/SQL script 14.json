@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 14",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [age]\n,[job]\n,[marital]\n,[education]\n,[default]\n,[housing]\n,[loan]\n,[contact]\n,[month]\n,[day_of_week]\n,[duration]\n,[campaign]\n,[pdays]\n,[previous]\n,[poutcome]\n,[emp.var.rate]\n,[cons.price.idx]\n,[cons.conf.idx]\n,[euribor3m]\n,[nr.employed]\n,[y]\n FROM [dbo].[bankMarketingTestData]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "transactionAnalytics",
+				"poolName": "transactionAnalytics"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

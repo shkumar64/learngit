@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Fraud]\n,[Amount]\n,[State]\n,[TransactionType]\n,[Method]\n FROM [dbo].[finalreport1]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "customerTransactions",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

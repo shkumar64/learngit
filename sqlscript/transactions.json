@@ -1,0 +1,17 @@
+{
+	"name": "transactions",
+	"properties": {
+		"content": {
+			"query": "CREATE VIEW [dbo].[transactionReport]\n\tAS SELECT * FROM\n\t OPENROWSET( \n       'CosmosDB',\n       'Account=csutomertransactions;Database=linkdemo;Key=SbUVdZ34kWpbtuSXxPFc0dVupL4KdeIE3hcJYLXmWd60XteDux0vvxihLey4WZn7COFiPHSehLsxCgk1DDNw6w==',\n       transaction3) with (TransactionID VARCHAR(200), AccountNumber VARCHAR(200), Time VARCHAR(8000), Date VARCHAR (8000), ZipCustomer VARCHAR(200), VendorType VARCHAR(200), Device VARCHAR(200),Amount BIGINT, Method VARCHAR(200), Fraud INT) as rows \n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "customerTransactions",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 17",
+	"properties": {
+		"content": {
+			"query": "DROP TABLE [dbo].[bankmarketing]\nGO\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "transactionAnalytics",
+				"poolName": "transactionAnalytics"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

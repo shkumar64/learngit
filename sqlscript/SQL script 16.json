@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 16",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'bankmarketing' AND O.TYPE = 'U' AND S.NAME = 'dbo')\nCREATE TABLE dbo.bankmarketing\n\t(\n\t [age] bigint,\n\t [job] nvarchar(4000),\n\t [marital] nvarchar(4000),\n\t [education] nvarchar(4000),\n\t [defaulted] nvarchar(4000),\n\t [housing] nvarchar(4000),\n\t [loan] nvarchar(4000),\n\t [contact] nvarchar(4000),\n\t [month] nvarchar(4000),\n\t [day_of_week] nvarchar(4000),\n\t [duration] bigint,\n\t [campaign] bigint,\n\t [pdays] bigint,\n\t [previous] bigint,\n\t [poutcome] nvarchar(4000),\n\t [empvarrate] float,\n\t [conspriceidx] float,\n\t [consconfidx] float,\n\t [euribor3m] float,\n\t [nremployed] float,\n\t [y] nvarchar(4000)\n\t)\nWITH\n\t(\n\tDISTRIBUTION = ROUND_ROBIN,\n\t CLUSTERED COLUMNSTORE INDEX\n\t -- HEAP\n\t)\nGO\n\n--Uncomment the 4 lines below to create a stored procedure for data pipeline orchestration​\n--CREATE PROC bulk_load_bankmarketing\n--AS\n--BEGIN\nCOPY INTO dbo.bankmarketing\n(age 1, job 2, marital 3, education 4, defaulted 5, housing 6, loan 7, contact 8, month 9, day_of_week 10, duration 11, campaign 12, pdays 13, previous 14, poutcome 15, empvarrate 16, conspriceidx 17, consconfidx 18, euribor3m 19, nremployed 20, y 21)\nFROM 'https://synapseadlsfraud.dfs.core.windows.net/testapache/testData/bankmarketing_test.csv'\nWITH\n(\n\tFILE_TYPE = 'CSV'\n\t,MAXERRORS = 0\n\t,FIRSTROW = 2\n\t,ERRORFILE = 'https://synapseadlsfraud.dfs.core.windows.net/testapache/'\n)\n--END\nGO\n\nSELECT TOP 100 * FROM dbo.bankmarketing\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "transactionAnalytics",
+				"poolName": "transactionAnalytics"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
