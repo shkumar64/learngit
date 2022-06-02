@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "bankingfraudanalyticssynapse"
+		},
+		"AzureDataLakeStorage1_accountKey": {
+			"value": ""
+		},
+		"bankingfraudanalyticssynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://nyctaxiadls.dfs.core.windows.net"
+		},
+		"AzureMLService1_properties_typeProperties_subscriptionId": {
+			"value": "9c1bf73d-cfe5-4113-bc28-5f637bb222ad"
+		},
+		"AzureMLService1_properties_typeProperties_resourceGroupName": {
+			"value": "common"
+		},
+		"AzureMLService2_properties_typeProperties_subscriptionId": {
+			"value": "4f560746-383b-468f-bdfa-bc5acc08a8f1"
+		},
+		"AzureMLService2_properties_typeProperties_resourceGroupName": {
+			"value": "MLADS"
+		},
+		"bankingfraudanalyticssynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://synapseadlsfraud.dfs.core.windows.net"
+		},
+		"nyc_tlc_green_sasUri": {
+			"value": ""
+		}
+	}
+}

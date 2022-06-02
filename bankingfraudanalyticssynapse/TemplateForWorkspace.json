@@ -1,0 +1,4974 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "bankingfraudanalyticssynapse"
+		},
+		"AzureDataLakeStorage1_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage1'"
+		},
+		"bankingfraudanalyticssynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'bankingfraudanalyticssynapse-WorkspaceDefaultSqlServer'"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://nyctaxiadls.dfs.core.windows.net"
+		},
+		"AzureMLService1_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "9c1bf73d-cfe5-4113-bc28-5f637bb222ad"
+		},
+		"AzureMLService1_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "common"
+		},
+		"AzureMLService2_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "4f560746-383b-468f-bdfa-bc5acc08a8f1"
+		},
+		"AzureMLService2_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "MLADS"
+		},
+		"bankingfraudanalyticssynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://synapseadlsfraud.dfs.core.windows.net"
+		},
+		"nyc_tlc_green_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'nyc_tlc_green'"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureDataLakeStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStorage1_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureMLService1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureMLService",
+				"typeProperties": {
+					"subscriptionId": "[parameters('AzureMLService1_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureMLService1_properties_typeProperties_resourceGroupName')]",
+					"mlWorkspaceName": "commonmlwksp",
+					"authentication": "MSI"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureMLService2')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureMLService",
+				"typeProperties": {
+					"subscriptionId": "[parameters('AzureMLService2_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureMLService2_properties_typeProperties_resourceGroupName')]",
+					"mlWorkspaceName": "mlads",
+					"authentication": "MSI"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/FraudAnalytics')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "PowerBIWorkspace",
+				"typeProperties": {
+					"workspaceID": "74db5292-4c26-4909-a61b-198aa9875c73",
+					"tenantID": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/bankingfraudanalyticssynapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('bankingfraudanalyticssynapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/bankingfraudanalyticssynapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('bankingfraudanalyticssynapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/nyc_tlc_green')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('nyc_tlc_green_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Load the New York Taxicab dataset')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n/* Create tables for the sample data */\nCREATE TABLE [dbo].[Date]\n(\n    [DateID] int NOT NULL,\n    [Date] datetime NULL,\n    [DateBKey] char(10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfMonth] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DaySuffix] varchar(4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayName] varchar(9) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfWeek] char(1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfWeekInMonth] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfWeekInYear] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfQuarter] varchar(3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DayOfYear] varchar(3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [WeekOfMonth] varchar(1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [WeekOfQuarter] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [WeekOfYear] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [Month] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [MonthName] varchar(9) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [MonthOfQuarter] varchar(2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [Quarter] char(1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [QuarterName] varchar(9) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [Year] char(4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [YearName] char(7) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [MonthYear] char(10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [MMYYYY] char(6) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [FirstDayOfMonth] date NULL,\n    [LastDayOfMonth] date NULL,\n    [FirstDayOfQuarter] date NULL,\n    [LastDayOfQuarter] date NULL,\n    [FirstDayOfYear] date NULL,\n    [LastDayOfYear] date NULL,\n    [IsHolidayUSA] bit NULL,\n    [IsWeekday] bit NULL,\n    [HolidayUSA] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[Geography]\n(\n    [GeographyID] int NOT NULL,\n    [ZipCodeBKey] varchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,\n    [County] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [City] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [State] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [Country] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [ZipCode] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[HackneyLicense]\n(\n    [HackneyLicenseID] int NOT NULL,\n    [HackneyLicenseBKey] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,\n    [HackneyLicenseCode] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[Medallion]\n(\n    [MedallionID] int NOT NULL,\n    [MedallionBKey] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,\n    [MedallionCode] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[Time]\n(\n    [TimeID] int NOT NULL,\n    [TimeBKey] varchar(8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,\n    [HourNumber] tinyint NOT NULL,\n    [MinuteNumber] tinyint NOT NULL,\n    [SecondNumber] tinyint NOT NULL,\n    [TimeInSecond] int NOT NULL,\n    [HourlyBucket] varchar(15) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,\n    [DayTimeBucketGroupKey] int NOT NULL,\n    [DayTimeBucket] varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[Trip]\n(\n    [DateID] int NOT NULL,\n    [MedallionID] int NOT NULL,\n    [HackneyLicenseID] int NOT NULL,\n    [PickupTimeID] int NOT NULL,\n    [DropoffTimeID] int NOT NULL,\n    [PickupGeographyID] int NULL,\n    [DropoffGeographyID] int NULL,\n    [PickupLatitude] float NULL,\n    [PickupLongitude] float NULL,\n    [PickupLatLong] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DropoffLatitude] float NULL,\n    [DropoffLongitude] float NULL,\n    [DropoffLatLong] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [PassengerCount] int NULL,\n    [TripDurationSeconds] int NULL,\n    [TripDistanceMiles] float NULL,\n    [PaymentType] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [FareAmount] money NULL,\n    [SurchargeAmount] money NULL,\n    [TaxAmount] money NULL,\n    [TipAmount] money NULL,\n    [TollsAmount] money NULL,\n    [TotalAmount] money NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE [dbo].[Weather]\n(\n    [DateID] int NOT NULL,\n    [GeographyID] int NOT NULL,\n    [PrecipitationInches] float NOT NULL,\n    [AvgTemperatureFahrenheit] float NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\n\n/* Load the data into your data warehouse */\nCOPY INTO [dbo].[Date]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Date'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = ''\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Date] - Taxi dataset');\n\n\nCOPY INTO [dbo].[Geography]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Geography'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = ''\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Geography] - Taxi dataset');\n\nCOPY INTO [dbo].[HackneyLicense]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/HackneyLicense'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = ''\n)\nOPTION (LABEL = 'COPY : Load [dbo].[HackneyLicense] - Taxi dataset');\n\nCOPY INTO [dbo].[Medallion]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Medallion'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = ''\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Medallion] - Taxi dataset');\n\nCOPY INTO [dbo].[Time]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Time'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = ''\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Time] - Taxi dataset');\n\nCOPY INTO [dbo].[Weather]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Weather'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = ',',\n\tFIELDQUOTE = '',\n\tROWTERMINATOR='0X0A'\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Weather] - Taxi dataset');\n\nCOPY INTO [dbo].[Trip]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Trip2013'\nWITH\n(\n    FILE_TYPE = 'CSV',\n\tFIELDTERMINATOR = '|',\n\tFIELDQUOTE = '',\n\tROWTERMINATOR='0X0A',\n\tCOMPRESSION = 'GZIP'\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Trip] - Taxi dataset');\n\n\n/* View the data */\nSELECT  r.[request_id]\n,       r.[status]\n,       r.resource_class\n,       r.command\n,       sum(bytes_processed) AS bytes_processed\n,       sum(rows_processed) AS rows_processed\nFROM    sys.dm_pdw_exec_requests r\n              JOIN sys.dm_pdw_dms_workers w\n                     ON r.[request_id] = w.request_id\nWHERE [label] = 'COPY : Load [dbo].[Date] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[Geography] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[HackneyLicense] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[Medallion] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[Time] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[Weather] - Taxi dataset' OR\n    [label] = 'COPY : Load [dbo].[Trip] - Taxi dataset'\nand session_id <> session_id() and type = 'WRITER'\nGROUP BY r.[request_id],\n        r.[status],\n        r.resource_class,\n        r.command;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 10')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[transactionReport]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 11')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[finalreport24]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 12')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[finalreport3]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 13')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "IF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = '[bankMarketingTestData]' AND O.TYPE = 'U' AND S.NAME = '[dbo]')\nCREATE TABLE [dbo].[bankMarketingTestData]\n\t(\n\t [age] bigint,\n\t [job] nvarchar(4000),\n\t [marital] nvarchar(4000),\n\t [education] nvarchar(4000),\n\t [default] nvarchar(4000),\n\t [housing] nvarchar(4000),\n\t [loan] nvarchar(4000),\n\t [contact] nvarchar(4000),\n\t [month] nvarchar(4000),\n\t [day_of_week] nvarchar(4000),\n\t [duration] bigint,\n\t [campaign] bigint,\n\t [pdays] bigint,\n\t [previous] bigint,\n\t [poutcome] nvarchar(4000),\n\t [emp.var.rate] float,\n\t [cons.price.idx] float,\n\t [cons.conf.idx] float,\n\t [euribor3m] float,\n\t [nr.employed] float,\n\t [y] nvarchar(4000)\n\t)\nWITH\n\t(\n\tDISTRIBUTION = ROUND_ROBIN,\n\t CLUSTERED COLUMNSTORE INDEX\n\t -- HEAP\n\t)\nGO\n\n--Uncomment the 4 lines below to create a stored procedure for data pipeline orchestration​\n--CREATE PROC bulk_load_[bankMarketingTestData]\n--AS\n--BEGIN\nCOPY INTO [dbo].[bankMarketingTestData]\n(age 1, job 2, marital 3, education 4, default 5, housing 6, loan 7, contact 8, month 9, day_of_week 10, duration 11, campaign 12, pdays 13, previous 14, poutcome 15, emp.var.rate 16, cons.price.idx 17, cons.conf.idx 18, euribor3m 19, nr.employed 20, y 21)\nFROM 'https://synapseadlsfraud.dfs.core.windows.net/testapache/testData/bankmarketing_test.csv'\nWITH\n(\n\tFILE_TYPE = 'CSV'\n\t,MAXERRORS = 0\n\t,FIRSTROW = 2\n\t,ERRORFILE = 'https://synapseadlsfraud.dfs.core.windows.net/testapache/'\n)\n--END\nGO\n\nSELECT TOP 100 * FROM [dbo].[bankMarketingTestData]\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 14')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [age]\n,[job]\n,[marital]\n,[education]\n,[default]\n,[housing]\n,[loan]\n,[contact]\n,[month]\n,[day_of_week]\n,[duration]\n,[campaign]\n,[pdays]\n,[previous]\n,[poutcome]\n,[emp.var.rate]\n,[cons.price.idx]\n,[cons.conf.idx]\n,[euribor3m]\n,[nr.employed]\n,[y]\n FROM [dbo].[bankMarketingTestData]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 15')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "DROP TABLE [dbo].[bankMarketingTestData]\nGO\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 16')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "IF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'bankmarketing' AND O.TYPE = 'U' AND S.NAME = 'dbo')\nCREATE TABLE dbo.bankmarketing\n\t(\n\t [age] bigint,\n\t [job] nvarchar(4000),\n\t [marital] nvarchar(4000),\n\t [education] nvarchar(4000),\n\t [defaulted] nvarchar(4000),\n\t [housing] nvarchar(4000),\n\t [loan] nvarchar(4000),\n\t [contact] nvarchar(4000),\n\t [month] nvarchar(4000),\n\t [day_of_week] nvarchar(4000),\n\t [duration] bigint,\n\t [campaign] bigint,\n\t [pdays] bigint,\n\t [previous] bigint,\n\t [poutcome] nvarchar(4000),\n\t [empvarrate] float,\n\t [conspriceidx] float,\n\t [consconfidx] float,\n\t [euribor3m] float,\n\t [nremployed] float,\n\t [y] nvarchar(4000)\n\t)\nWITH\n\t(\n\tDISTRIBUTION = ROUND_ROBIN,\n\t CLUSTERED COLUMNSTORE INDEX\n\t -- HEAP\n\t)\nGO\n\n--Uncomment the 4 lines below to create a stored procedure for data pipeline orchestration​\n--CREATE PROC bulk_load_bankmarketing\n--AS\n--BEGIN\nCOPY INTO dbo.bankmarketing\n(age 1, job 2, marital 3, education 4, defaulted 5, housing 6, loan 7, contact 8, month 9, day_of_week 10, duration 11, campaign 12, pdays 13, previous 14, poutcome 15, empvarrate 16, conspriceidx 17, consconfidx 18, euribor3m 19, nremployed 20, y 21)\nFROM 'https://synapseadlsfraud.dfs.core.windows.net/testapache/testData/bankmarketing_test.csv'\nWITH\n(\n\tFILE_TYPE = 'CSV'\n\t,MAXERRORS = 0\n\t,FIRSTROW = 2\n\t,ERRORFILE = 'https://synapseadlsfraud.dfs.core.windows.net/testapache/'\n)\n--END\nGO\n\nSELECT TOP 100 * FROM dbo.bankmarketing\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 17')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "DROP TABLE [dbo].[bankmarketing]\nGO\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Fraud]\n,[Amount]\n,[isFraud]\n,[OFACviolation]\n,[State]\n,[TransactionType]\n,[Method]\n FROM [dbo].[finalreport]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Fraud]\n,[Amount]\n,[State]\n,[TransactionType]\n,[Method]\n FROM [dbo].[finalreport1]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[finalreport3]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[finalreport4]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TransactionID]\n,[AccountNumber]\n,[Time]\n,[Date]\n,[ZipCustomer]\n,[VendorType]\n,[Device]\n,[Amount]\n,[Method]\n,[Fraud]\n FROM [dbo].[transactionReport]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 7')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [CONSTRAINT_CATALOG]\n,[CONSTRAINT_SCHEMA]\n,[CONSTRAINT_NAME]\n,[CHECK_CLAUSE]\n FROM [INFORMATION_SCHEMA].[CHECK_CONSTRAINTS]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 8')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [TABLE_CATALOG]\n,[TABLE_SCHEMA]\n,[TABLE_NAME]\n,[COLUMN_NAME]\n,[CONSTRAINT_CATALOG]\n,[CONSTRAINT_SCHEMA]\n,[CONSTRAINT_NAME]\n FROM [INFORMATION_SCHEMA].[CONSTRAINT_COLUMN_USAGE]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "transactionAnalytics",
+						"poolName": "transactionAnalytics"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 9')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [date_rep]\n,[cases]\n,[geo_id]\n FROM [dbo].[CovidDeltaLake]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/transactions')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE VIEW [dbo].[transactionReport]\n\tAS SELECT * FROM\n\t OPENROWSET( \n       'CosmosDB',\n       'Account=csutomertransactions;Database=linkdemo;Key=SbUVdZ34kWpbtuSXxPFc0dVupL4KdeIE3hcJYLXmWd60XteDux0vvxihLey4WZn7COFiPHSehLsxCgk1DDNw6w==',\n       transaction3) with (TransactionID VARCHAR(200), AccountNumber VARCHAR(200), Time VARCHAR(8000), Date VARCHAR (8000), ZipCustomer VARCHAR(200), VendorType VARCHAR(200), Device VARCHAR(200),Amount BIGINT, Method VARCHAR(200), Fraud INT) as rows \n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "customerTransactions",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Boston house price prediction')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "b27688fc-5cbc-4141-8b74-42d6b8a3aada"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1",
+						"state": {
+							"82c3f9db-24c4-43f1-90d1-19374a4a1cd3": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 24,
+												"1": 0.00632,
+												"2": 18,
+												"3": 2.31,
+												"4": 0,
+												"5": 0.538,
+												"6": 6.575,
+												"7": 65.2,
+												"8": 4.09,
+												"9": 1,
+												"10": 296,
+												"11": 15.3,
+												"12": 396.9,
+												"13": 4.98
+											},
+											{
+												"0": 21.6,
+												"1": 0.02731,
+												"2": 0,
+												"3": 7.07,
+												"4": 0,
+												"5": 0.469,
+												"6": 6.421,
+												"7": 78.9,
+												"8": 4.9671,
+												"9": 2,
+												"10": 242,
+												"11": 17.8,
+												"12": 396.9,
+												"13": 9.14
+											},
+											{
+												"0": 34.7,
+												"1": 0.02729,
+												"2": 0,
+												"3": 7.07,
+												"4": 0,
+												"5": 0.469,
+												"6": 7.185,
+												"7": 61.1,
+												"8": 4.9671,
+												"9": 2,
+												"10": 242,
+												"11": 17.8,
+												"12": 392.83,
+												"13": 4.03
+											},
+											{
+												"0": 33.4,
+												"1": 0.03237,
+												"2": 0,
+												"3": 2.18,
+												"4": 0,
+												"5": 0.458,
+												"6": 6.998,
+												"7": 45.8,
+												"8": 6.0622,
+												"9": 3,
+												"10": 222,
+												"11": 18.7,
+												"12": 394.63,
+												"13": 2.94
+											},
+											{
+												"0": 36.2,
+												"1": 0.06905,
+												"2": 0,
+												"3": 2.18,
+												"4": 0,
+												"5": 0.458,
+												"6": 7.147,
+												"7": 54.2,
+												"8": 6.0622,
+												"9": 3,
+												"10": 222,
+												"11": 18.7,
+												"12": 396.9,
+												"13": 5.33
+											},
+											{
+												"0": 28.7,
+												"1": 0.02985,
+												"2": 0,
+												"3": 2.18,
+												"4": 0,
+												"5": 0.458,
+												"6": 6.43,
+												"7": 58.7,
+												"8": 6.0622,
+												"9": 3,
+												"10": 222,
+												"11": 18.7,
+												"12": 394.12,
+												"13": 5.21
+											},
+											{
+												"0": 22.9,
+												"1": 0.08829,
+												"2": 12.5,
+												"3": 7.87,
+												"4": 0,
+												"5": 0.524,
+												"6": 6.012,
+												"7": 66.6,
+												"8": 5.5605,
+												"9": 5,
+												"10": 311,
+												"11": 15.2,
+												"12": 395.6,
+												"13": 12.43
+											},
+											{
+												"0": 27.1,
+												"1": 0.14455,
+												"2": 12.5,
+												"3": 7.87,
+												"4": 0,
+												"5": 0.524,
+												"6": 6.172,
+												"7": 96.1,
+												"8": 5.9505,
+												"9": 5,
+												"10": 311,
+												"11": 15.2,
+												"12": 396.9,
+												"13": 19.15
+											},
+											{
+												"0": 16.5,
+												"1": 0.21124,
+												"2": 12.5,
+												"3": 7.87,
+												"4": 0,
+												"5": 0.524,
+												"6": 5.631,
+												"7": 100,
+												"8": 6.0821,
+												"9": 5,
+												"10": 311,
+												"11": 15.2,
+												"12": 386.63,
+												"13": 29.93
+											},
+											{
+												"0": 18.9,
+												"1": 0.17004,
+												"2": 12.5,
+												"3": 7.87,
+												"4": 0,
+												"5": 0.524,
+												"6": 6.004,
+												"7": 85.9,
+												"8": 6.5921,
+												"9": 5,
+												"10": 311,
+												"11": 15.2,
+												"12": 386.71,
+												"13": 17.1
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "f0",
+												"type": "double"
+											},
+											{
+												"key": "2",
+												"name": "f1",
+												"type": "double"
+											},
+											{
+												"key": "3",
+												"name": "f2",
+												"type": "double"
+											},
+											{
+												"key": "4",
+												"name": "f3",
+												"type": "double"
+											},
+											{
+												"key": "5",
+												"name": "f4",
+												"type": "double"
+											},
+											{
+												"key": "6",
+												"name": "f5",
+												"type": "double"
+											},
+											{
+												"key": "7",
+												"name": "f6",
+												"type": "double"
+											},
+											{
+												"key": "8",
+												"name": "f7",
+												"type": "double"
+											},
+											{
+												"key": "9",
+												"name": "f8",
+												"type": "double"
+											},
+											{
+												"key": "10",
+												"name": "f9",
+												"type": "double"
+											},
+											{
+												"key": "11",
+												"name": "f10",
+												"type": "double"
+											},
+											{
+												"key": "12",
+												"name": "f11",
+												"type": "double"
+											},
+											{
+												"key": "13",
+												"name": "f12",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"1"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"a74a7036-febe-40b2-a595-9a785694bef1": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "count",
+												"1": "377",
+												"2": "377",
+												"3": "377",
+												"4": "377",
+												"5": "377",
+												"6": "377",
+												"7": "377",
+												"8": "377",
+												"9": "377",
+												"10": "377",
+												"11": "377",
+												"12": "377",
+												"13": "377",
+												"14": "377"
+											},
+											{
+												"0": "mean",
+												"1": "21.973740053050395",
+												"2": "3.713706445623341",
+												"3": "10.809018567639257",
+												"4": "11.50358090185676",
+												"5": "0.07427055702917772",
+												"6": "0.5621320954907156",
+												"7": "6.236015915119363",
+												"8": "70.09734748010614",
+												"9": "3.7060336870026527",
+												"10": "9.782493368700266",
+												"11": "414.40318302387266",
+												"12": "18.52015915119362",
+												"13": "350.23286472148504",
+												"14": "13.184270557029182"
+											},
+											{
+												"0": "stddev",
+												"1": "8.895643511000259",
+												"2": "7.864063086907033",
+												"3": "23.063986464629473",
+												"4": "6.898021082586262",
+												"5": "0.2625591341862547",
+												"6": "0.11925569148339353",
+												"7": "0.710894626480467",
+												"8": "28.107981250290862",
+												"9": "2.0910161916976997",
+												"10": "8.78226035585757",
+												"11": "170.03684453811675",
+												"12": "2.140967413102137",
+												"13": "99.13944837560052",
+												"14": "7.313211453734242"
+											},
+											{
+												"0": "min",
+												"1": "5.0",
+												"2": "0.00632",
+												"3": "0.0",
+												"4": "0.46",
+												"5": "0.0",
+												"6": "0.385",
+												"7": "3.561",
+												"8": "2.9",
+												"9": "1.1296",
+												"10": "1.0",
+												"11": "188.0",
+												"12": "12.6",
+												"13": "0.32",
+												"14": "1.98"
+											},
+											{
+												"0": "25%",
+												"1": "16.3",
+												"2": "0.09164",
+												"3": "0.0",
+												"4": "5.64",
+												"5": "0.0",
+												"6": "0.453",
+												"7": "5.875",
+												"8": "47.2",
+												"9": "2.0651",
+												"10": "4.0",
+												"11": "284.0",
+												"12": "17.4",
+												"13": "371.58",
+												"14": "7.39"
+											},
+											{
+												"0": "50%",
+												"1": "20.7",
+												"2": "0.29916",
+												"3": "0.0",
+												"4": "9.9",
+												"5": "0.0",
+												"6": "0.538",
+												"7": "6.167",
+												"8": "80.8",
+												"9": "2.9634",
+												"10": "5.0",
+												"11": "334.0",
+												"12": "19.1",
+												"13": "390.95",
+												"14": "12.26"
+											},
+											{
+												"0": "75%",
+												"1": "24.7",
+												"2": "3.83684",
+												"3": "12.5",
+												"4": "18.1",
+												"5": "0.0",
+												"6": "0.647",
+												"7": "6.567",
+												"8": "94.6",
+												"9": "5.1004",
+												"10": "24.0",
+												"11": "666.0",
+												"12": "20.2",
+												"13": "396.23",
+												"14": "17.27"
+											},
+											{
+												"0": "max",
+												"1": "50.0",
+												"2": "73.5341",
+												"3": "95.0",
+												"4": "27.74",
+												"5": "1.0",
+												"6": "0.871",
+												"7": "8.78",
+												"8": "100.0",
+												"9": "10.7103",
+												"10": "24.0",
+												"11": "711.0",
+												"12": "22.0",
+												"13": "396.9",
+												"14": "37.97"
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "summary",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "target",
+												"type": "string"
+											},
+											{
+												"key": "2",
+												"name": "f0",
+												"type": "string"
+											},
+											{
+												"key": "3",
+												"name": "f1",
+												"type": "string"
+											},
+											{
+												"key": "4",
+												"name": "f2",
+												"type": "string"
+											},
+											{
+												"key": "5",
+												"name": "f3",
+												"type": "string"
+											},
+											{
+												"key": "6",
+												"name": "f4",
+												"type": "string"
+											},
+											{
+												"key": "7",
+												"name": "f5",
+												"type": "string"
+											},
+											{
+												"key": "8",
+												"name": "f6",
+												"type": "string"
+											},
+											{
+												"key": "9",
+												"name": "f7",
+												"type": "string"
+											},
+											{
+												"key": "10",
+												"name": "f8",
+												"type": "string"
+											},
+											{
+												"key": "11",
+												"name": "f9",
+												"type": "string"
+											},
+											{
+												"key": "12",
+												"name": "f10",
+												"type": "string"
+											},
+											{
+												"key": "13",
+												"name": "f11",
+												"type": "string"
+											},
+											{
+												"key": "14",
+												"name": "f12",
+												"type": "string"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "count",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"600096d1-9aa7-4ad6-9232-ec62959e81bb": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 5,
+												"1": {
+													"type": 1,
+													"values": [
+														38.3518,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.453,
+														100,
+														1.4896,
+														24,
+														666,
+														20.2,
+														396.9,
+														30.59
+													]
+												}
+											},
+											{
+												"0": 7,
+												"1": {
+													"type": 1,
+													"values": [
+														0.18337,
+														0,
+														27.74,
+														0,
+														0.609,
+														5.414,
+														98.3,
+														1.7554,
+														4,
+														711,
+														20.1,
+														344.05,
+														23.97
+													]
+												}
+											},
+											{
+												"0": 7,
+												"1": {
+													"type": 1,
+													"values": [
+														45.7461,
+														0,
+														18.1,
+														0,
+														0.693,
+														4.519,
+														100,
+														1.6582,
+														24,
+														666,
+														20.2,
+														88.27,
+														36.98
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 1,
+													"values": [
+														14.2362,
+														0,
+														18.1,
+														0,
+														0.693,
+														6.343,
+														100,
+														1.5741,
+														24,
+														666,
+														20.2,
+														396.9,
+														20.32
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 1,
+													"values": [
+														16.8118,
+														0,
+														18.1,
+														0,
+														0.7,
+														5.277,
+														98.1,
+														1.4261,
+														24,
+														666,
+														20.2,
+														396.9,
+														30.81
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 1,
+													"values": [
+														18.0846,
+														0,
+														18.1,
+														0,
+														0.679,
+														6.434,
+														100,
+														1.8347,
+														24,
+														666,
+														20.2,
+														27.25,
+														29.05
+													]
+												}
+											},
+											{
+												"0": 7.4,
+												"1": {
+													"type": 1,
+													"values": [
+														22.5971,
+														0,
+														18.1,
+														0,
+														0.7,
+														5,
+														89.5,
+														1.5184,
+														24,
+														666,
+														20.2,
+														396.9,
+														31.99
+													]
+												}
+											},
+											{
+												"0": 7.5,
+												"1": {
+													"type": 1,
+													"values": [
+														10.8342,
+														0,
+														18.1,
+														0,
+														0.679,
+														6.782,
+														90.8,
+														1.8195,
+														24,
+														666,
+														20.2,
+														21.57,
+														25.79
+													]
+												}
+											},
+											{
+												"0": 8.1,
+												"1": {
+													"type": 1,
+													"values": [
+														0.20746,
+														0,
+														27.74,
+														0,
+														0.609,
+														5.093,
+														98,
+														1.8226,
+														4,
+														711,
+														20.1,
+														318.43,
+														29.68
+													]
+												}
+											},
+											{
+												"0": 8.3,
+												"1": {
+													"type": 1,
+													"values": [
+														15.8603,
+														0,
+														18.1,
+														0,
+														0.679,
+														5.896,
+														95.4,
+														1.9096,
+														24,
+														666,
+														20.2,
+														7.68,
+														24.39
+													]
+												}
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "features",
+												"type": "org.apache.spark.ml.linalg.VectorUDT@3bfc3ba7"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"2f89eb4c-27c9-4eaa-9a88-31332f805c21": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 5,
+												"1": {
+													"type": 1,
+													"values": [
+														67.9208,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.683,
+														100,
+														1.4254,
+														24,
+														666,
+														20.2,
+														384.97,
+														22.98
+													]
+												},
+												"2": 10.840796919767257
+											},
+											{
+												"0": 5.6,
+												"1": {
+													"type": 1,
+													"values": [
+														25.0461,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.987,
+														100,
+														1.5888,
+														24,
+														666,
+														20.2,
+														396.9,
+														26.77
+													]
+												},
+												"2": 13.243210244993282
+											},
+											{
+												"0": 6.3,
+												"1": {
+													"type": 1,
+													"values": [
+														9.91655,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.852,
+														77.8,
+														1.5004,
+														24,
+														666,
+														20.2,
+														338.16,
+														29.97
+													]
+												},
+												"2": 12.14686562729382
+											},
+											{
+												"0": 8.3,
+												"1": {
+													"type": 1,
+													"values": [
+														24.8017,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.349,
+														96,
+														1.7028,
+														24,
+														666,
+														20.2,
+														396.9,
+														19.77
+													]
+												},
+												"2": 14.471714057928402
+											},
+											{
+												"0": 8.5,
+												"1": {
+													"type": 1,
+													"values": [
+														7.67202,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.747,
+														98.9,
+														1.6334,
+														24,
+														666,
+														20.2,
+														393.1,
+														19.92
+													]
+												},
+												"2": 17.08265883101909
+											},
+											{
+												"0": 10.2,
+												"1": {
+													"type": 1,
+													"values": [
+														17.8667,
+														0,
+														18.1,
+														0,
+														0.671,
+														6.223,
+														100,
+														1.3861,
+														24,
+														666,
+														20.2,
+														393.74,
+														21.78
+													]
+												},
+												"2": 17.72097721514993
+											},
+											{
+												"0": 10.4,
+												"1": {
+													"type": 1,
+													"values": [
+														88.9762,
+														0,
+														18.1,
+														0,
+														0.671,
+														6.968,
+														91.9,
+														1.4165,
+														24,
+														666,
+														20.2,
+														396.9,
+														17.21
+													]
+												},
+												"2": 16.741030711114753
+											},
+											{
+												"0": 11,
+												"1": {
+													"type": 1,
+													"values": [
+														7.36711,
+														0,
+														18.1,
+														0,
+														0.679,
+														6.193,
+														78.1,
+														1.9356,
+														24,
+														666,
+														20.2,
+														96.73,
+														21.52
+													]
+												},
+												"2": 14.431770346035968
+											},
+											{
+												"0": 11.3,
+												"1": {
+													"type": 1,
+													"values": [
+														9.18702,
+														0,
+														18.1,
+														0,
+														0.7,
+														5.536,
+														100,
+														1.5804,
+														24,
+														666,
+														20.2,
+														396.9,
+														23.6
+													]
+												},
+												"2": 14.478643032934919
+											},
+											{
+												"0": 12.7,
+												"1": {
+													"type": 1,
+													"values": [
+														13.3598,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.887,
+														94.7,
+														1.7821,
+														24,
+														666,
+														20.2,
+														396.9,
+														16.35
+													]
+												},
+												"2": 18.65300921286679
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "features",
+												"type": "org.apache.spark.ml.linalg.VectorUDT@3bfc3ba7"
+											},
+											{
+												"key": "2",
+												"name": "prediction",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"2"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"795426d8-a364-4c03-b5e3-886d06d9bcae": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "Spark MLlib - Linear Regression",
+												"1": 27.976319703714584,
+												"2": 5.289264571158696,
+												"3": 0.7112910017173594,
+												"4": 3.7154226196060236
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "model",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "2",
+												"name": "root_mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "3",
+												"name": "R^2",
+												"type": "double"
+											},
+											{
+												"key": "4",
+												"name": "mean_absolute_error",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"1"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"70da46b4-6839-445f-82b0-4fbb7b3ca4b7": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 5,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.4896,
+														666,
+														24,
+														30.59,
+														5.453,
+														396.9,
+														38.3518,
+														0.693
+													]
+												}
+											},
+											{
+												"0": 7,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.1,
+														98.3,
+														27.74,
+														1.7554,
+														711,
+														4,
+														23.97,
+														5.414,
+														344.05,
+														0.18337,
+														0.609
+													]
+												}
+											},
+											{
+												"0": 7,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.6582,
+														666,
+														24,
+														36.98,
+														4.519,
+														88.27,
+														45.7461,
+														0.693
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.5741,
+														666,
+														24,
+														20.32,
+														6.343,
+														396.9,
+														14.2362,
+														0.693
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														98.1,
+														18.1,
+														1.4261,
+														666,
+														24,
+														30.81,
+														5.277,
+														396.9,
+														16.8118,
+														0.7
+													]
+												}
+											},
+											{
+												"0": 7.2,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.8347,
+														666,
+														24,
+														29.05,
+														6.434,
+														27.25,
+														18.0846,
+														0.679
+													]
+												}
+											},
+											{
+												"0": 7.4,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														89.5,
+														18.1,
+														1.5184,
+														666,
+														24,
+														31.99,
+														5,
+														396.9,
+														22.5971,
+														0.7
+													]
+												}
+											},
+											{
+												"0": 7.5,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														90.8,
+														18.1,
+														1.8195,
+														666,
+														24,
+														25.79,
+														6.782,
+														21.57,
+														10.8342,
+														0.679
+													]
+												}
+											},
+											{
+												"0": 8.1,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.1,
+														98,
+														27.74,
+														1.8226,
+														711,
+														4,
+														29.68,
+														5.093,
+														318.43,
+														0.20746,
+														0.609
+													]
+												}
+											},
+											{
+												"0": 8.3,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														95.4,
+														18.1,
+														1.9096,
+														666,
+														24,
+														24.39,
+														5.896,
+														7.68,
+														15.8603,
+														0.679
+													]
+												}
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "features",
+												"type": "org.apache.spark.ml.linalg.VectorUDT@3bfc3ba7"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"eed8eb90-268c-4803-ad6c-b173411a6203": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 5,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.4254,
+														666,
+														24,
+														22.98,
+														5.683,
+														384.97,
+														67.9208,
+														0.693
+													]
+												},
+												"2": 20.90886688232422,
+												"3": 20.90886688232422
+											},
+											{
+												"0": 5.6,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.5888,
+														666,
+														24,
+														26.77,
+														5.987,
+														396.9,
+														25.0461,
+														0.693
+													]
+												},
+												"2": 32.110198974609375,
+												"3": 32.110198974609375
+											},
+											{
+												"0": 6.3,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														77.8,
+														18.1,
+														1.5004,
+														666,
+														24,
+														29.97,
+														5.852,
+														338.16,
+														9.91655,
+														0.693
+													]
+												},
+												"2": 34.4964599609375,
+												"3": 34.4964599609375
+											},
+											{
+												"0": 8.3,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														96,
+														18.1,
+														1.7028,
+														666,
+														24,
+														19.77,
+														5.349,
+														396.9,
+														24.8017,
+														0.693
+													]
+												},
+												"2": 33.560638427734375,
+												"3": 33.560638427734375
+											},
+											{
+												"0": 8.5,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														98.9,
+														18.1,
+														1.6334,
+														666,
+														24,
+														19.92,
+														5.747,
+														393.1,
+														7.67202,
+														0.693
+													]
+												},
+												"2": 40.183040618896484,
+												"3": 40.183040618896484
+											},
+											{
+												"0": 10.2,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.3861,
+														666,
+														24,
+														21.78,
+														6.223,
+														393.74,
+														17.8667,
+														0.671
+													]
+												},
+												"2": 37.640419006347656,
+												"3": 37.640419006347656
+											},
+											{
+												"0": 10.4,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														91.9,
+														18.1,
+														1.4165,
+														666,
+														24,
+														17.21,
+														6.968,
+														396.9,
+														88.9762,
+														0.671
+													]
+												},
+												"2": 23.387290954589844,
+												"3": 23.387290954589844
+											},
+											{
+												"0": 11,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														78.1,
+														18.1,
+														1.9356,
+														666,
+														24,
+														21.52,
+														6.193,
+														96.73,
+														7.36711,
+														0.679
+													]
+												},
+												"2": 33.56855010986328,
+												"3": 33.56855010986328
+											},
+											{
+												"0": 11.3,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														100,
+														18.1,
+														1.5804,
+														666,
+														24,
+														23.6,
+														5.536,
+														396.9,
+														9.18702,
+														0.7
+													]
+												},
+												"2": 37.96609115600586,
+												"3": 37.96609115600586
+											},
+											{
+												"0": 12.7,
+												"1": {
+													"type": 0,
+													"size": 1073741824,
+													"indices": [
+														287408178,
+														419613213,
+														464140333,
+														556319843,
+														584064458,
+														780495775,
+														824677867,
+														851899283,
+														921728202,
+														933181289,
+														1055634727
+													],
+													"values": [
+														20.2,
+														94.7,
+														18.1,
+														1.7821,
+														666,
+														24,
+														16.35,
+														5.887,
+														396.9,
+														13.3598,
+														0.693
+													]
+												},
+												"2": 39.88002014160156,
+												"3": 39.88002014160156
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "features",
+												"type": "org.apache.spark.ml.linalg.VectorUDT@3bfc3ba7"
+											},
+											{
+												"key": "2",
+												"name": "rawPrediction",
+												"type": "double"
+											},
+											{
+												"key": "3",
+												"name": "prediction",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"2"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"9c80f938-a9c2-447f-896e-a3b5447ed2f9": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "Spark MLlib - Linear Regression",
+												"1": 27.976319703714584,
+												"2": 5.289264571158696,
+												"3": 0.7112910017173594,
+												"4": 3.7154226196060236
+											},
+											{
+												"0": "Vowpal Wabbit",
+												"1": 261.6089180538872,
+												"2": 16.174328983110463,
+												"3": -1.6997421202301588,
+												"4": 14.759180039398432
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "model",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "2",
+												"name": "root_mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "3",
+												"name": "R^2",
+												"type": "double"
+											},
+											{
+												"key": "4",
+												"name": "mean_absolute_error",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"1"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"66ca8e41-a8e6-4f96-8859-301c2c46b3ff": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": 5,
+												"1": {
+													"type": 1,
+													"values": [
+														67.9208,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.683,
+														100,
+														1.4254,
+														24,
+														666,
+														20.2,
+														384.97,
+														22.98
+													]
+												},
+												"2": 10.125545304878454
+											},
+											{
+												"0": 5.6,
+												"1": {
+													"type": 1,
+													"values": [
+														25.0461,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.987,
+														100,
+														1.5888,
+														24,
+														666,
+														20.2,
+														396.9,
+														26.77
+													]
+												},
+												"2": 7.8555181506504566
+											},
+											{
+												"0": 6.3,
+												"1": {
+													"type": 1,
+													"values": [
+														9.91655,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.852,
+														77.8,
+														1.5004,
+														24,
+														666,
+														20.2,
+														338.16,
+														29.97
+													]
+												},
+												"2": 12.350327830954347
+											},
+											{
+												"0": 8.3,
+												"1": {
+													"type": 1,
+													"values": [
+														24.8017,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.349,
+														96,
+														1.7028,
+														24,
+														666,
+														20.2,
+														396.9,
+														19.77
+													]
+												},
+												"2": 9.408284298711045
+											},
+											{
+												"0": 8.5,
+												"1": {
+													"type": 1,
+													"values": [
+														7.67202,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.747,
+														98.9,
+														1.6334,
+														24,
+														666,
+														20.2,
+														393.1,
+														19.92
+													]
+												},
+												"2": 11.705711758454298
+											},
+											{
+												"0": 10.2,
+												"1": {
+													"type": 1,
+													"values": [
+														17.8667,
+														0,
+														18.1,
+														0,
+														0.671,
+														6.223,
+														100,
+														1.3861,
+														24,
+														666,
+														20.2,
+														393.74,
+														21.78
+													]
+												},
+												"2": 11.378612631892928
+											},
+											{
+												"0": 10.4,
+												"1": {
+													"type": 1,
+													"values": [
+														88.9762,
+														0,
+														18.1,
+														0,
+														0.671,
+														6.968,
+														91.9,
+														1.4165,
+														24,
+														666,
+														20.2,
+														396.9,
+														17.21
+													]
+												},
+												"2": 12.758518021271096
+											},
+											{
+												"0": 11,
+												"1": {
+													"type": 1,
+													"values": [
+														7.36711,
+														0,
+														18.1,
+														0,
+														0.679,
+														6.193,
+														78.1,
+														1.9356,
+														24,
+														666,
+														20.2,
+														96.73,
+														21.52
+													]
+												},
+												"2": 11.009850748168407
+											},
+											{
+												"0": 11.3,
+												"1": {
+													"type": 1,
+													"values": [
+														9.18702,
+														0,
+														18.1,
+														0,
+														0.7,
+														5.536,
+														100,
+														1.5804,
+														24,
+														666,
+														20.2,
+														396.9,
+														23.6
+													]
+												},
+												"2": 11.789698630551646
+											},
+											{
+												"0": 12.7,
+												"1": {
+													"type": 1,
+													"values": [
+														13.3598,
+														0,
+														18.1,
+														0,
+														0.693,
+														5.887,
+														94.7,
+														1.7821,
+														24,
+														666,
+														20.2,
+														396.9,
+														16.35
+													]
+												},
+												"2": 12.862038681023014
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "target",
+												"type": "double"
+											},
+											{
+												"key": "1",
+												"name": "features",
+												"type": "org.apache.spark.ml.linalg.VectorUDT@3bfc3ba7"
+											},
+											{
+												"key": "2",
+												"name": "prediction",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"2"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							},
+							"64d87527-ac0f-48e1-a7d2-8e897a0d942a": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "Spark MLlib - Linear Regression",
+												"1": 27.976319703714584,
+												"2": 5.289264571158696,
+												"3": 0.7112910017173594,
+												"4": 3.7154226196060236
+											},
+											{
+												"0": "Vowpal Wabbit",
+												"1": 261.6089180538872,
+												"2": 16.174328983110463,
+												"3": -1.6997421202301588,
+												"4": 14.759180039398432
+											},
+											{
+												"0": "LightGBM",
+												"1": 17.11581348425377,
+												"2": 4.137126234991358,
+												"3": 0.823368855583413,
+												"4": 2.671315643076597
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "model",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "2",
+												"name": "root_mean_squared_error",
+												"type": "double"
+											},
+											{
+												"key": "3",
+												"name": "R^2",
+												"type": "double"
+											},
+											{
+												"key": "4",
+												"name": "mean_absolute_error",
+												"type": "double"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"1"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							}
+						}
+					},
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Boston house price prediction with Vowpal Wabbit, LightGBM and Spark MLlib\n",
+							"\n",
+							"This notebook shows how to build simple regression models by using \n",
+							"[Vowpal Wabbit (VW)](https://github.com/VowpalWabbit/vowpal_wabbit) and \n",
+							"[LightGBM](https://github.com/microsoft/LightGBM) with MMLSpark.\n",
+							" We also compare the results with \n",
+							" [Spark MLlib Linear Regression](https://spark.apache.org/docs/latest/ml-classification-regression.html#linear-regression)."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import math\n",
+							"from matplotlib.colors import ListedColormap, Normalize\n",
+							"from matplotlib.cm import get_cmap\n",
+							"import matplotlib.pyplot as plt\n",
+							"from mmlspark.train import ComputeModelStatistics\n",
+							"from mmlspark.vw import VowpalWabbitRegressor, VowpalWabbitFeaturizer\n",
+							"from mmlspark.lightgbm import LightGBMRegressor\n",
+							"import numpy as np\n",
+							"import pandas as pd\n",
+							"from pyspark.ml.feature import VectorAssembler\n",
+							"from pyspark.ml.regression import LinearRegression\n",
+							"from sklearn.datasets import load_boston"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Prepare Dataset\n",
+							"We use [*Boston house price* dataset](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_boston.html) \n",
+							". \n",
+							"The data was collected in 1978 from Boston area and consists of 506 entries with 14 features including the value of homes. \n",
+							"We use `sklearn.datasets` module to download it easily, then split the set into training and testing by 75/25."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"boston = load_boston()\n",
+							"\n",
+							"feature_cols = ['f' + str(i) for i in range(boston.data.shape[1])]\n",
+							"header = ['target'] + feature_cols\n",
+							"df = spark.createDataFrame(\n",
+							"    pd.DataFrame(data=np.column_stack((boston.target, boston.data)), columns=header)\n",
+							").repartition(1)\n",
+							"print(\"Dataframe has {} rows\".format(df.count()))\n",
+							"display(df.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"train_data, test_data = df.randomSplit([0.75, 0.25], seed=42)\n",
+							"train_data.cache()\n",
+							"test_data.cache()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Following is the summary of the training set."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(train_data.summary().toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Plot feature distributions over different target values (house prices in our case)."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"features = train_data.columns[1:]\n",
+							"values = train_data.drop('target').toPandas()\n",
+							"ncols = 5\n",
+							"nrows = math.ceil(len(features) / ncols)\n",
+							"\n",
+							"yy = [r['target'] for r in train_data.select('target').collect()]\n",
+							"\n",
+							"f, axes = plt.subplots(nrows, ncols, sharey=True, figsize=(30,10))\n",
+							"f.tight_layout()\n",
+							"\n",
+							"for irow in range(nrows):\n",
+							"    axes[irow][0].set_ylabel('target')\n",
+							"    for icol in range(ncols):\n",
+							"        try:\n",
+							"            feat = features[irow*ncols + icol]\n",
+							"            xx = values[feat]\n",
+							"\n",
+							"            axes[irow][icol].scatter(xx, yy, s=10, alpha=0.25)\n",
+							"            axes[irow][icol].set_xlabel(feat)\n",
+							"            axes[irow][icol].get_yaxis().set_ticks([])\n",
+							"        except IndexError:\n",
+							"            f.delaxes(axes[irow][icol])"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Baseline - Spark MLlib Linear Regressor\n",
+							"\n",
+							"First, we set a baseline performance by using Linear Regressor in Spark MLlib."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"featurizer = VectorAssembler(\n",
+							"    inputCols=feature_cols,\n",
+							"    outputCol='features'\n",
+							")\n",
+							"lr_train_data = featurizer.transform(train_data)['target', 'features']\n",
+							"lr_test_data = featurizer.transform(test_data)['target', 'features']\n",
+							"display(lr_train_data.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# By default, `maxIter` is 100. Other params you may want to change include: `regParam`, `elasticNetParam`, etc.\n",
+							"lr = LinearRegression(\n",
+							"    labelCol='target',\n",
+							")\n",
+							"\n",
+							"lr_model = lr.fit(lr_train_data)\n",
+							"lr_predictions = lr_model.transform(lr_test_data)\n",
+							"\n",
+							"display(lr_predictions.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"We evaluate the prediction result by using `mmlspark.train.ComputeModelStatistics` which returns four metrics:\n",
+							"* [MSE (Mean Squared Error)](https://en.wikipedia.org/wiki/Mean_squared_error)\n",
+							"* [RMSE (Root Mean Squared Error)](https://en.wikipedia.org/wiki/Root-mean-square_deviation) = sqrt(MSE)\n",
+							"* [R quared](https://en.wikipedia.org/wiki/Coefficient_of_determination)\n",
+							"* [MAE (Mean Absolute Error)](https://en.wikipedia.org/wiki/Mean_absolute_error)"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"metrics = ComputeModelStatistics(\n",
+							"    evaluationMetric='regression',\n",
+							"    labelCol='target',\n",
+							"    scoresCol='prediction'\n",
+							").transform(lr_predictions)\n",
+							"\n",
+							"results = metrics.toPandas()\n",
+							"results.insert(0, 'model', ['Spark MLlib - Linear Regression'])\n",
+							"display(results)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Vowpal Wabbit"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Perform VW-style feature hashing. Many types (numbers, string, bool, map of string to (number, string)) are supported."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"vw_featurizer = VowpalWabbitFeaturizer(\n",
+							"    inputCols=feature_cols,\n",
+							"    outputCol='features',\n",
+							")\n",
+							"vw_train_data = vw_featurizer.transform(train_data)['target', 'features']\n",
+							"vw_test_data = vw_featurizer.transform(test_data)['target', 'features']\n",
+							"display(vw_train_data.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"See [VW wiki](https://github.com/vowpalWabbit/vowpal_wabbit/wiki/Command-Line-Arguments) for command line arguments."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# Use the same number of iterations as Spark MLlib's Linear Regression (=100)\n",
+							"args = \"--holdout_off --loss_function quantile -l 7 -q :: --power_t 0.3\"\n",
+							"vwr = VowpalWabbitRegressor(\n",
+							"    labelCol='target',\n",
+							"    args=args,\n",
+							"    numPasses=100,\n",
+							")\n",
+							"\n",
+							"# To reduce number of partitions (which will effect performance), use `vw_train_data.repartition(1)`\n",
+							"vw_train_data_2 = vw_train_data.repartition(1).cache()\n",
+							"print(vw_train_data_2.count())\n",
+							"vw_model = vwr.fit(vw_train_data_2.repartition(1))\n",
+							"vw_predictions = vw_model.transform(vw_test_data)\n",
+							"\n",
+							"display(vw_predictions.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"metrics = ComputeModelStatistics(\n",
+							"    evaluationMetric='regression',\n",
+							"    labelCol='target',\n",
+							"    scoresCol='prediction'\n",
+							").transform(vw_predictions)\n",
+							"\n",
+							"vw_result = metrics.toPandas()\n",
+							"vw_result.insert(0, 'model', ['Vowpal Wabbit'])\n",
+							"results = results.append(\n",
+							"    vw_result,\n",
+							"    ignore_index=True\n",
+							")\n",
+							"display(results)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## LightGBM"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"lgr = LightGBMRegressor(\n",
+							"    objective='quantile',\n",
+							"    alpha=0.2,\n",
+							"    learningRate=0.3,\n",
+							"    numLeaves=31,\n",
+							"    labelCol='target',\n",
+							"    numIterations=100,\n",
+							")\n",
+							"\n",
+							"# Using one partition since the training dataset is very small\n",
+							"repartitioned_data = lr_train_data.repartition(1).cache()\n",
+							"print(repartitioned_data.count())\n",
+							"lg_model = lgr.fit(repartitioned_data)\n",
+							"lg_predictions = lg_model.transform(lr_test_data)\n",
+							"\n",
+							"display(lg_predictions.limit(10).toPandas())"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"metrics = ComputeModelStatistics(\n",
+							"    evaluationMetric='regression',\n",
+							"    labelCol='target',\n",
+							"    scoresCol='prediction'\n",
+							").transform(lg_predictions)\n",
+							"\n",
+							"lg_result = metrics.toPandas()\n",
+							"lg_result.insert(0, 'model', ['LightGBM'])\n",
+							"results = results.append(\n",
+							"    lg_result,\n",
+							"    ignore_index=True\n",
+							")\n",
+							"display(results)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Following figure shows the actual-vs.-prediction graphs of the results:\n",
+							"\n",
+							"<img width=\"1102\" alt=\"lr-vw-lg\" src=\"https://user-images.githubusercontent.com/42475935/64071975-4c3e9600-cc54-11e9-8b1f-9a1ee300f445.png\">"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"cmap = get_cmap('YlOrRd')\n",
+							"\n",
+							"target = np.array(test_data.select('target').collect()).flatten()\n",
+							"model_preds = [\n",
+							"    (\"Spark MLlib Linear Regression\", lr_predictions),\n",
+							"    (\"Vowpal Wabbit\", vw_predictions),\n",
+							"    (\"LightGBM\", lg_predictions)\n",
+							"]"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"f, axes = plt.subplots(1, len(model_preds), sharey=True, figsize=(18, 6))\r\n",
+							"f.tight_layout()\r\n",
+							"\r\n",
+							"for i, (model_name, preds) in enumerate(model_preds):\r\n",
+							"    preds = np.array(preds.select('prediction').collect()).flatten()\r\n",
+							"    err = np.absolute(preds - target)\r\n",
+							"\r\n",
+							"    norm = Normalize()\r\n",
+							"    clrs = cmap(np.asarray(norm(err)))[:, :-1]\r\n",
+							"    axes[i].scatter(preds, target, s=60, c=clrs, edgecolors='#888888', alpha=0.75)\r\n",
+							"    axes[i].plot((0, 60), (0, 60), linestyle='--', color='#888888')\r\n",
+							"    axes[i].set_xlabel('Predicted values')\r\n",
+							"    if i ==0:\r\n",
+							"        axes[i].set_ylabel('Actual values')\r\n",
+							"    axes[i].set_title(model_name)\r\n",
+							"plt.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Clean up resources\r\n",
+							"To ensure the Spark instance is shut down, end any connected sessions(notebooks). The pool shuts down when the **idle time** specified in the Apache Spark pool is reached. You can also select **stop session** from the status bar at the upper right of the notebook.\r\n",
+							"\r\n",
+							"![stopsession](https://adsnotebookrelease.blob.core.windows.net/adsnotebookrelease/adsnotebook/image/stopsession.png)"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Next steps\r\n",
+							"\r\n",
+							"* [Check out Synapse sample notebooks](https://github.com/Azure-Samples/Synapse/tree/main/MachineLearning) \r\n",
+							"* [MMLSpark GitHub Repo](https://github.com/Azure/mmlspark)"
+						],
+						"attachments": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Hitchhikers Guide to Hyperspace')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "5f46e717-1856-4170-b744-d7493ba7c835"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/4f560746-383b-468f-bdfa-bc5acc08a8f1/resourceGroups/BankingFraudAnalytics/providers/Microsoft.Synapse/workspaces/bankingfraudanalyticssynapse/bigDataPools/testSpark",
+						"name": "testSpark",
+						"type": "Spark",
+						"endpoint": "https://bankingfraudanalyticssynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Hitchhiker's Guide to Hyperspace (Python)\n",
+							"## An Indexing Subsystem for Apache Spark™\n",
+							"\n",
+							"<img src=\"https://raw.githubusercontent.com/rapoth/hyperspace/master/docs/assets/images/hyperspace-small-banner.png\" alt=\"Hyperspace Indexing Sub-System Logo\" width=\"1000\"/>\n",
+							"\n",
+							"[Hyperspace](https://github.com/microsoft/hyperspace) introduces the ability for Apache Spark™ users to create indexes on their datasets (e.g., CSV, JSON, Parquet etc.) and leverage them for potential query and workload acceleration.\n",
+							"\n",
+							"In this notebook, we highlight the basics of Hyperspace, emphasizing on its simplicity and show how it can be used by just anyone.\n",
+							"\n",
+							"**Disclaimer**: Hyperspace helps accelerate your workloads/queries under two circumstances:\n",
+							"\n",
+							"  1. Queries contain filters on predicates with high selectivity (e.g., you want to select 100 matching rows from a million candidate rows)\n",
+							"  2. Queries contain a join that requires heavy-shuffles (e.g., you want to join a 100 GB dataset with a 10 GB dataset)\n",
+							"\n",
+							"You may want to carefully monitor your workloads and determine whether indexing is helping you on a case-by-case basis."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Setup\n",
+							"To begin with, let's start a new Spark™ session. Since this notebook is a tutorial merely to illustrate what Hyperspace can offer, we will make a configuration change that allow us to highlight what Hyperspace is doing on small datasets. By default, Spark™ uses *broadcast join* to optimize join queries when the data size for one side of join is small (which is the case for the sample data we use in this tutorial). Therefore, we disable broadcast joins so that later when we run join queries, Spark™ uses *sort-merge* join. This is mainly to show how Hyperspace indexes would be used at scale for accelerating join queries.\n",
+							"\n",
+							"The output of running the cell below shows a reference to the successfully created Spark™ session and prints out '-1' as the value for the modified join config which indicates that broadcast join is successfully disabled."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import random\n",
+							"\n",
+							"session_id = random.randint(0,1000000)\n",
+							"data_path = \"/hyperspace/data-{0}\".format(session_id)\n",
+							"index_location = \"/hyperspace/indexes-{0}\".format(session_id)\n",
+							"\n",
+							"# Use a random index location to avoid conflicts while using the notebook.\n",
+							"spark.conf.set(\"spark.hyperspace.system.path\", index_location)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Start your Spark session\n",
+							"spark\n",
+							"\n",
+							"# Disable BroadcastHashJoin, so Spark will use standard SortMergeJoin. Currently Hyperspace indexes utilize SortMergeJoin to speed up query.\n",
+							"spark.conf.set(\"spark.sql.autoBroadcastJoinThreshold\", -1)\n",
+							"\n",
+							"# Verify that BroadcastHashJoin is set correctly \n",
+							"print(spark.conf.get(\"spark.sql.autoBroadcastJoinThreshold\"))"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Data Preparation\n",
+							"\n",
+							"To prepare our environment, we will create sample data records and save them as parquet data files. While we use Parquet for illustration, you can use other formats such as CSV. In the subsequent cells, we will also demonstrate how you can create several Hyperspace indexes on this sample dataset and how one can make Spark™ use them when running queries. \n",
+							"\n",
+							"Our example records correspond to two datasets: *department* and *employee*. You should configure \"empLocation\" and \"deptLocation\" paths so that on the storage account they point to your desired location to save generated data files. \n",
+							"\n",
+							"The output of running below cell shows contents of our datasets as lists of triplets followed by references to dataFrames created to save the content of each dataset in our preferred location."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql.types import StructField, StructType, StringType, IntegerType\n",
+							"\n",
+							"# Sample department records\n",
+							"departments = [(10, \"Accounting\", \"New York\"), (20, \"Research\", \"Dallas\"), (30, \"Sales\", \"Chicago\"), (40, \"Operations\", \"Boston\")]\n",
+							"\n",
+							"# Sample employee records\n",
+							"employees = [(7369, \"SMITH\", 20), (7499, \"ALLEN\", 30), (7521, \"WARD\", 30), (7566, \"JONES\", 20), (7698, \"BLAKE\", 30)]\n",
+							"\n",
+							"# Create a schema for the dataframe\n",
+							"dept_schema = StructType([StructField('deptId', IntegerType(), True), StructField('deptName', StringType(), True), StructField('location', StringType(), True)])\n",
+							"emp_schema = StructType([StructField('empId', IntegerType(), True), StructField('empName', StringType(), True), StructField('deptId', IntegerType(), True)])\n",
+							"\n",
+							"departments_df = spark.createDataFrame(departments, dept_schema)\n",
+							"employees_df = spark.createDataFrame(employees, emp_schema)\n",
+							"\n",
+							"emp_Location = data_path + \"/employees.parquet\"\n",
+							"dept_Location = data_path + \"/departments.parquet\"\n",
+							"\n",
+							"employees_df.write.mode(\"overwrite\").parquet(emp_Location)\n",
+							"departments_df.write.mode(\"overwrite\").parquet(dept_Location)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Let's verify the contents of parquet files we created above to make sure they contain expected records in correct format. We later use these data files to create Hyperspace indexes and run sample queries.\n",
+							"\n",
+							"Running below cell, the output displays the rows in employee and department dataframes in a tabular form. There should be 14 employees and 4 departments, each matching with one of triplets we created in the previous cell."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# emp_Location and dept_Location are the user defined locations above to save parquet files\n",
+							"emp_DF = spark.read.parquet(emp_Location)\n",
+							"dept_DF = spark.read.parquet(dept_Location)\n",
+							"\n",
+							"# Verify the data is available and correct\n",
+							"emp_DF.show()\n",
+							"dept_DF.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Hello Hyperspace Index!\n",
+							"Hyperspace lets users create indexes on records scanned from persisted data files. Once successfully created, an entry corresponding to the index is added to the Hyperspace's metadata. This metadata is later used by Apache Spark™'s Hyperspace-enabled optimizer during query processing to find and use proper indexes. \n",
+							"\n",
+							"Once indexes are created, users can perform several actions:\n",
+							"  - **Refresh** If the underlying data changes, users can refresh an existing index to capture that. \n",
+							"  - **Delete** If the index is not needed, users can perform a soft-delete i.e., index is not physically deleted but is marked as 'deleted' so it is no longer used in your workloads.\n",
+							"  - **Vacuum** If an index is no longer required, users can vacuum it which forces a physical deletion of the index contents and associated metadata completely from Hyperspace's metadata.\n",
+							"\n",
+							"Below sections show how such index management operations can be done in Hyperspace.\n",
+							"\n",
+							"First, we need to import the required libraries and create an instance of Hyperspace. We later use this instance to invoke different Hyperspace APIs to create indexes on our sample data and modify those indexes.\n",
+							"\n",
+							"Output of running below cell shows a reference to the created instance of Hyperspace."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from hyperspace import *\n",
+							"\n",
+							"# Create an instance of Hyperspace\n",
+							"hyperspace = Hyperspace(spark)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"### Create Indexes\n",
+							"To create a Hyperspace index, the user needs to provide 2 pieces of information:\n",
+							"* An Apache Spark™ DataFrame which references the data to be indexed.\n",
+							"* An index configuration object: IndexConfig, which specifies the *index name*, *indexed* and *included* columns of the index. \n",
+							"\n",
+							"As you might have noticed, in this notebook, we illustrate indexing using the [Covering Index](https://www.red-gate.com/simple-talk/sql/learn-sql-server/using-covering-indexes-to-improve-query-performance/), which is the default index in Hyperspace. In the future, we plan on adding support for other index types. \n",
+							"\n",
+							"We start by creating three Hyperspace indexes on our sample data: two indexes on the department dataset named \"deptIndex1\" and \"deptIndex2\", and one index on the employee dataset named 'empIndex'. \n",
+							"For each index, we need a corresponding IndexConfig to capture the name along with columns lists for the indexed and included columns. Running below cell creates these indexConfigs and its output lists them.\n",
+							"\n",
+							"**Note**: An *index column* is a column that appears in your filters or join conditions. An *included column* is a column that appears in your select/project.\n",
+							"\n",
+							"For instance, in the following query:\n",
+							"```sql\n",
+							"SELECT X\n",
+							"FROM Table\n",
+							"WHERE Y = 2\n",
+							"```\n",
+							"Y can be an *index column* and X can be an *included column*."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Create index configurations\n",
+							"\n",
+							"emp_IndexConfig = IndexConfig(\"empIndex1\", [\"deptId\"], [\"empName\"])\n",
+							"dept_IndexConfig1 = IndexConfig(\"deptIndex1\", [\"deptId\"], [\"deptName\"])\n",
+							"dept_IndexConfig2 = IndexConfig(\"deptIndex2\", [\"location\"], [\"deptName\"])"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Now, we create three indexes using our index configurations. For this purpose, we invoke \"createIndex\" command on our Hyperspace instance. This command requires an index configuration and the dataFrame containing rows to be indexed.\n",
+							"Running below cell creates three indexes.\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Create indexes from configurations\n",
+							"\n",
+							"hyperspace.createIndex(emp_DF, emp_IndexConfig)\n",
+							"hyperspace.createIndex(dept_DF, dept_IndexConfig1)\n",
+							"hyperspace.createIndex(dept_DF, dept_IndexConfig2)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"### List Indexes\n",
+							"\n",
+							"Below code shows how a user can list all available indexes in a Hyperspace instance. It uses the `indexes` API which returns information about existing indexes as a Spark™'s DataFrame so you can perform additional operations. For instance, you can invoke valid operations on this DataFrame for checking its content or analyzing it further (for example filtering specific indexes or grouping them according to some desired property). \n",
+							"\n",
+							"Below cell uses DataFrame's `show` action to fully print the rows and show details of our indexes in a tabular form. For each index, we can see all the information Hyperspace has stored about it in its metadata. \n",
+							"\n",
+							"You will immediately notice the following:\n",
+							"  - `config.indexName`, `config.indexedColumns`, `config.includedColumns` are the fields that a user normally provides during index creation.\n",
+							"  - `status.status` indicates if the index is being actively used by the Spark's optimizer.\n",
+							"  - `dfSignature` is automatically generated by Hyperspace and is unique for each index. Hyperspace uses this signature internally to maintain the index and exploit it at query time. \n",
+							"  \n",
+							"In the output below, all three indexes should have \"ACTIVE\" as status and their name, indexed columns, and included columns should match with what we defined in index configurations above."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.indexes().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"### Delete Indexes\n",
+							"A user can drop an existing index by using the `deleteIndex` API and providing the index name. \n",
+							"\n",
+							"Index deletion is a **soft-delete** operation i.e., only the index's status in the Hyperspace metadata from is changed from \"ACTIVE\" to \"DELETED\". This will exclude the deleted index from any future query optimization and Hyperspace no longer picks that index for any query. However, index files for a deleted index still remain available (since it is a soft-delete), so if you accidentally deleted the index, you could still restore it.\n",
+							"\n",
+							"The cell below deletes index with name \"deptIndex2\" and lists Hyperspace metadata after that. The output should be similar to above cell for \"List Indexes\" except for \"deptIndex2\" which now should have its status changed into \"DELETED\"."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.deleteIndex(\"deptIndex2\")\n",
+							"\n",
+							"hyperspace.indexes().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"### Restore Indexes\n",
+							"A user can use the `restoreIndex` API to restore a deleted index. This will bring back the latest version of index into ACTIVE status and makes it usable again for queries. \n",
+							"\n",
+							"The cell below shows an example of `restoreIndex` API. We delete \"deptIndex1\" and restore it. The output shows \"deptIndex1\" first went into the \"DELETED\" status after invoking \"deleteIndex\" command and came back to the \"ACTIVE\" status after calling \"restoreIndex\"."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.deleteIndex(\"deptIndex1\")\n",
+							"\n",
+							"hyperspace.indexes().show()\n",
+							"\n",
+							"hyperspace.restoreIndex(\"deptIndex1\")\n",
+							"\n",
+							"hyperspace.indexes().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"### Vacuum Indexes\n",
+							"The user can perform a **hard-delete** i.e., fully remove files and the metadata entry for a deleted index using the `vacuumIndex` API. Once done, this action is **irreversible** as it physically deletes all the index files associated with the index.\n",
+							"\n",
+							"The cell below vacuums the \"deptIndex2\" index and shows Hyperspace metadata after vaccuming. You should see metadata entries for two indexes \"deptIndex1\" and \"empIndex\" both with \"ACTIVE\" status and no entry for \"deptIndex2\"."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.vacuumIndex(\"deptIndex2\")\n",
+							"hyperspace.indexes().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Enable/Disable Hyperspace\n",
+							"\n",
+							"Hyperspace provides APIs to enable or disable index usage with Spark™.\n",
+							"\n",
+							"  - By using `enableHyperspace` API, Hyperspace optimization rules become visible to the Apache Spark™ optimizer and it will exploit existing Hyperspace indexes to optimize user queries.\n",
+							"  - By using `disableHyperspace` command, Hyperspace rules no longer apply during query optimization. You should note that disabling Hyperspace has no impact on created indexes as they remain intact.\n",
+							"\n",
+							"Below cell shows how you can use these commands to enable or disable hyperspace. The output simply shows a reference to the existing Spark™ session whose configuration is updated."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Enable Hyperspace\n",
+							"Hyperspace.enable(spark)\n",
+							"\n",
+							"# Disable Hyperspace\n",
+							"Hyperspace.disable(spark)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Index Usage\n",
+							"In order to make Spark use Hyperspace indexes during query processing, the user needs to make sure that Hyperspace is enabled. \n",
+							"\n",
+							"The cell below enables Hyperspace and creates two DataFrames containing our sample data records which we use for running example queries. For each DataFrame, a few sample rows are printed."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Enable Hyperspace\n",
+							"Hyperspace.enable(spark)\n",
+							"\n",
+							"emp_DF = spark.read.parquet(emp_Location)\n",
+							"dept_DF = spark.read.parquet(dept_Location)\n",
+							"\n",
+							"emp_DF.show(5)\n",
+							"dept_DF.show(5)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Hyperspace's Index Types\n",
+							"\n",
+							"Currently, Hyperspace can exploit indexes for two groups of queries: \n",
+							"* Selection queries with lookup or range selection filtering predicates.\n",
+							"* Join queries with an equality join predicate (i.e. Equi-joins)."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Indexes for Accelerating Filters\n",
+							"\n",
+							"Our first example query does a lookup on department records (see below cell). In SQL, this query looks as follows:\n",
+							"\n",
+							"```sql\n",
+							"SELECT deptName \n",
+							"FROM departments\n",
+							"WHERE deptId = 20\n",
+							"```\n",
+							"\n",
+							"The output of running the cell below shows: \n",
+							"- query result, which is a single department name.\n",
+							"- query plan that Spark™ used to run the query. \n",
+							"\n",
+							"In the query plan, the \"FileScan\" operator at the bottom of the plan shows the datasource where the records were read from. The location of this file indicates the path to the latest version of the \"deptIndex1\" index. This shows  that according to the query and using Hyperspace optimization rules, Spark™ decided to exploit the proper index at runtime.\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Filter with equality predicate\n",
+							"\n",
+							"eqFilter = dept_DF.filter(\"\"\"deptId = 20\"\"\").select(\"\"\"deptName\"\"\")\n",
+							"eqFilter.show()\n",
+							"\n",
+							"hyperspace.explain(eqFilter, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Our second example is a range selection query on department records. In SQL, this query looks as follows:\n",
+							"\n",
+							"```sql\n",
+							"SELECT deptName \n",
+							"FROM departments\n",
+							"WHERE deptId > 20\n",
+							"```\n",
+							"Similar to our first example, the output of the cell below shows the query results (names of two departments) and the query plan. The location of data file in the FileScan operator shows that 'deptIndex1\" was used to run the query.   \n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Filter with range selection predicate\n",
+							"\n",
+							"rangeFilter = dept_DF.filter(\"\"\"deptId > 20\"\"\").select(\"deptName\")\n",
+							"rangeFilter.show()\n",
+							"\n",
+							"hyperspace.explain(rangeFilter, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Our third example is a query joining department and employee records on the department id. The equivalent SQL statement is shown below:\n",
+							"\n",
+							"```sql\n",
+							"SELECT employees.deptId, empName, departments.deptId, deptName\n",
+							"FROM   employees, departments \n",
+							"WHERE  employees.deptId = departments.deptId\n",
+							"```\n",
+							"\n",
+							"The output of running the cell below shows the query results which are the names of 14 employees and the name of department each employee works in. The query plan is also included in the output. Notice how the file locations for two FileScan operators shows that Spark used \"empIndex\" and \"deptIndex1\" indexes to run the query.   \n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Join\n",
+							"\n",
+							"eqJoin = emp_DF.join(dept_DF, emp_DF.deptId == dept_DF.deptId).select(emp_DF.empName, dept_DF.deptName)\n",
+							"\n",
+							"eqJoin.show()\n",
+							"\n",
+							"hyperspace.explain(eqJoin, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Support for SQL Semantics\n",
+							"\n",
+							"The index usage is transparent to whether the user uses DataFrame API or Spark™ SQL. The following example shows the same join example as before but using Spark SQL, showing the use of indexes if applicable."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql import SparkSession\n",
+							"\n",
+							"emp_DF.createOrReplaceTempView(\"EMP\")\n",
+							"dept_DF.createOrReplaceTempView(\"DEPT\")\n",
+							"\n",
+							"joinQuery = spark.sql(\"SELECT EMP.empName, DEPT.deptName FROM EMP, DEPT WHERE EMP.deptId = DEPT.deptId\")\n",
+							"\n",
+							"joinQuery.show()\n",
+							"hyperspace.explain(joinQuery, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Explain API\n",
+							"\n",
+							"So far, you might have observed we have been using the explain API provided by Hyperspace. The `explain` API from Hyperspace is very similar to Spark's `df.explain` API but allows users to compare their original plan vs the updated index-dependent plan before running their query. You have an option to choose from html/plaintext/console mode to display the command output"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"eqJoin = emp_DF.join(dept_DF, emp_DF.deptId == dept_DF.deptId).select(emp_DF.empName, dept_DF.deptName)\n",
+							"\n",
+							"hyperspace.explain(eqJoin, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Refresh Indexes\n",
+							"If the original data on which an index was created changes, then the index will no longer capture the latest state of data and hence will not be used by Hyperspace to provide any acceleration. The user can refresh such a stale index using the `refreshIndex` API. This causes the index to be fully rebuilt and updates it according to the latest data records.\n",
+							"    \n",
+							"    Spoiler alert: if you are worried about fully rebuilding your index every time your data changes, don't worry! We will show you how to *incrementally refresh* your index in subsequent cells below.\n",
+							"\n",
+							"The two cells below show an example for this scenario:\n",
+							"- First cell adds two more departments to the original departments data. It reads and prints list of departments to verify new departments are added correctly. The output shows 6 departments in total: four old ones and two new. Invoking \"refreshIndex\" updates \"deptIndex1\" so index captures new departments.\n",
+							"- Second cell runs our range selection query example. The results should now contain four departments: two are the ones, seen before when we ran the query above, and two are the new departments we just added."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"extra_Departments = [(50, \"Inovation\", \"Seattle\"), (60, \"Human Resources\", \"San Francisco\")]\n",
+							"\n",
+							"extra_departments_df = spark.createDataFrame(extra_Departments, dept_schema)\n",
+							"extra_departments_df.write.mode(\"Append\").parquet(dept_Location)\n",
+							"\n",
+							"\n",
+							"dept_DFrame_Updated = spark.read.parquet(dept_Location)\n",
+							"\n",
+							"dept_DFrame_Updated.show(10)\n",
+							"\n",
+							"hyperspace.refreshIndex(\"deptIndex1\")"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"newRangeFilter = dept_DFrame_Updated.filter(\"deptId > 20\").select(\"deptName\")\n",
+							"newRangeFilter.show()\n",
+							"\n",
+							"hyperspace.explain(newRangeFilter, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.indexes().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Clean-up the remaining indexes\n",
+							"hyperspace.deleteIndex(\"empIndex1\")\n",
+							"hyperspace.deleteIndex(\"deptIndex1\")\n",
+							"\n",
+							"hyperspace.vacuumIndex(\"empIndex1\")\n",
+							"hyperspace.vacuumIndex(\"deptIndex1\")"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Hybrid Scan for Mutable Datasets\n",
+							"\n",
+							"Often times, if your underlying source data had some new files appended or existing files deleted, your index will get stale and Hyperspace decides not to use it. However, there are times where you just want to use the index without having to refresh it everytime. There could be multiple reasons for doing so:\n",
+							"\n",
+							"  1. You do not want to continuosly refresh your index but instead want to do it periodically since you understand your workloads the best.  \n",
+							"  2. You added/removed only a few files and do not want to wait for yet another refresh job to finish. \n",
+							"\n",
+							"To allow you to still use a stale index, Hyperspace introduces **Hybrid Scan**, a novel technique that allows users to utilize outdated or stale indexes (e.g., the underlying source data had some new files appended or existing files deleted), without refreshing indexes. \n",
+							"\n",
+							"To achieve this, when you set the appropriate configuration to enable Hybrid Scan, Hyperspace modifies the query plan to leverage the changes as following:\n",
+							"- Appended files can be merged to index data by using **`Union` or `BucketUnion` (for join)**. Shuffling appended data can also be applied before merging, if needed.\n",
+							"- Deleted files can be handled by injecting `Filter-NOT-IN` condition on **lineage column** of index data, so that the indexed rows from the deleted files can be excluded at query time. \n",
+							"\n",
+							"You can check the transformation of the query plan in below examples.\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Hybrid Scan for appended files - non-partitioned data\n",
+							"\n",
+							"Non-partitioned data is used in below example. In this example, we expect Join index can be used for the query and `BucketUnion` is introduced for appended files."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"# GENERATE TEST DATA\n",
+							"\n",
+							"testdata = [\n",
+							"    (\"orange\", 3, \"2020-10-01\"),\n",
+							"    (\"banana\", 1, \"2020-10-01\"),\n",
+							"    (\"carrot\", 5, \"2020-10-02\"),\n",
+							"    (\"beetroot\", 12, \"2020-10-02\"),\n",
+							"    (\"orange\", 2, \"2020-10-03\"),\n",
+							"    (\"banana\", 11, \"2020-10-03\"),\n",
+							"    (\"carrot\", 3, \"2020-10-03\"),\n",
+							"    (\"beetroot\", 2, \"2020-10-04\"),\n",
+							"    (\"cucumber\", 7, \"2020-10-05\"),\n",
+							"    (\"pepper\", 20, \"2020-10-06\")\n",
+							"]\n",
+							"\n",
+							"testdata_location = data_path + \"/productTable\"\n",
+							"from pyspark.sql.types import StructField, StructType, StringType, IntegerType\n",
+							"testdata_schema = StructType([\n",
+							"    StructField('name', StringType(), True),\n",
+							"    StructField('qty', IntegerType(), True),\n",
+							"    StructField('date', StringType(), True)])\n",
+							"\n",
+							"test_df = spark.createDataFrame(testdata, testdata_schema)\n",
+							"test_df.write.mode(\"overwrite\").parquet(testdata_location)\n",
+							"test_df = spark.read.parquet(testdata_location)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"# CREATE INDEX\n",
+							"hyperspace.createIndex(test_df, IndexConfig(\"productIndex2\", [\"name\"], [\"date\", \"qty\"]))\n",
+							"\n",
+							"spark.conf.set(\"spark.sql.autoBroadcastJoinThreshold\", -1)\n",
+							"filter1 = test_df.filter(\"name = 'banana'\")\n",
+							"filter2 = test_df.filter(\"qty > 10\")\n",
+							"query = filter1.join(filter2, \"name\")\n",
+							"\n",
+							"# Check Join index rule is applied properly.\n",
+							"hyperspace.explain(query, True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"# Append new files.\r\n",
+							"append_data = [\r\n",
+							"    (\"orange\", 13, \"2020-11-01\"),\r\n",
+							"    (\"banana\", 5, \"2020-11-01\")\r\n",
+							"]\r\n",
+							"append_df = spark.createDataFrame(append_data, testdata_schema)\r\n",
+							"append_df.write.mode(\"append\").parquet(testdata_location)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Hybrid scan is disabled by default. Therefore, you will see that since we appended new data, Hyperspace will decide NOT to use the index.\n",
+							"\n",
+							"In the output, you will see no plan differences (hence no highlighting)."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"# Hybrid Scan configs are false by default.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.enabled\", \"false\")\n",
+							"\n",
+							"test_df_with_append = spark.read.parquet(testdata_location)\n",
+							"filter1 = test_df_with_append.filter(\"name = 'banana'\")\n",
+							"filter2 = test_df_with_append.filter(\"qty > 10\")\n",
+							"query = filter1.join(filter2, \"name\")\n",
+							"hyperspace.explain(query, True)\n",
+							"query.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Enable Hybrid Scan\r\n",
+							"\r\n",
+							"In plan with indexes, you can see\r\n",
+							"`Exchange hashpartitioning` required only for appended files so that we could still utilize the \"shuffled\" index data with appended files. `BucketUnion` is used to merge \"shuffled\" appended files with the index data."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"# Enable Hybrid Scan config.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.enabled\", \"true\")\n",
+							"# Adjust the ratio of appended data threshold if needed. It's 0.3 (30%) by default.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.maxAppendedRatio\", \"0.9\")\n",
+							"\n",
+							"# Need to redefine query to recalculate the query plan.\n",
+							"query = filter1.join(filter2, \"name\")\n",
+							"hyperspace.explain(query, True)\n",
+							"query.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Incremental Index Refresh\n",
+							"When you ready to update your indexes but do not want to rebuild your entire index, Hyperspace supports updating indexes in an incremental manner using `hs.refreshIndex(\"name\", \"incremental\")` API. This will allow eliminate the need for a full rebuild of index from scratch, utilizing previously created index files as well as updating indexes on only the newly added data.\n",
+							"\n",
+							"Of course, please be sure to use the complementary `optimizeIndex` API (shown below) periodically to make sure you do not see performance regressions. We recommend calling `optimize` at least once for every 10 times you call `refreshIndex(..., \"incremental\")`, assuming the data you added/removed is < 10% of the original dataset. For instance, if your original dataset is 100 GB, and you've added/removed data in increments/decrements of 1 GB, you can call `refreshIndex` 10 times before calling `optimizeIndex`. Please note that this example is simply used for illustration and you have to adapt this for your workloads.\n",
+							"\n",
+							"In the example below, notice the addition of a `Sort` node in the query plan when indexes are used. This is because partial indexes are created on the appended data files, causing Spark to introduce a `Sort`. Please also note that `Shuffle` i.e. `Exchange` is still eliminated from the plan, giving you the appropriate acceleration."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"def query():\n",
+							"    test_df_with_append = spark.read.parquet(testdata_location)\n",
+							"    filter1 = test_df_with_append.filter(\"name = 'banana'\")\n",
+							"    filter2 = test_df_with_append.filter(\"qty > 10\")\n",
+							"    return filter1.join(filter2, \"name\")"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.refreshIndex(\"productIndex2\", \"incremental\")\n",
+							"\n",
+							"hyperspace.explain(query(), True)\n",
+							"query().show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Optimize Index layout\n",
+							"After calling incremental refreshes multiple times on newly appended data (e.g. if the user writes to data in small batches or in case of streaming scenarios), the number of index files tend to become large affecting the performance of the index (large number of small files problem). Hyperspace provides `hyperspace.optimizeIndex(\"indexName\")` API to optimize the index layout and reduce the large files problem.\n",
+							"\n",
+							"In the plan below, notice that Hyperspace has removed the additional `Sort` node in the query plan. Optimize can help avoiding sorting for any index bucket which contains only one file. However, this will only be true if ALL the index buckets have at most 1 file per bucket, after `optimizeIndex`."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Append some more data and call refresh again.\n",
+							"append_data = [\n",
+							"    (\"orange\", 13, \"2020-11-01\"),\n",
+							"    (\"banana\", 5, \"2020-11-01\")\n",
+							"]\n",
+							"append_df = spark.createDataFrame(append_data, testdata_schema)\n",
+							"append_df.write.mode(\"append\").parquet(testdata_location)\n",
+							"\n",
+							"hyperspace.refreshIndex(\"productIndex2\", \"incremental\")"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Call optimize. Ensure that Sort is removed after optimization (This is possible here because after optimize, in this case, every bucket contains only 1 file.).\n",
+							"hyperspace.optimizeIndex(\"productIndex2\")\n",
+							"\n",
+							"hyperspace.explain(query(), True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Optimize modes\n",
+							"\n",
+							"The default mode for optimization is \"quick\" mode where files smaller than a predefined threshold are picked for optmization. To maximize the effect of optimization, Hyperspace allows another optimize mode \"full\" as shown below. This mode picks ALL index files for optimization irrespective of their file size and creates the best possible layout of the index. This is also slower than the default optimize mode because more data is being processed here.\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hyperspace.optimizeIndex(\"productIndex2\", \"full\")\n",
+							"\n",
+							"hyperspace.explain(query(), True)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Hyperspace for Delta Lake')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e34c0e11-1b68-4d24-9c33-ef3fbce0b679"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_spark",
+						"display_name": "Synapse Spark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/4f560746-383b-468f-bdfa-bc5acc08a8f1/resourceGroups/BankingFraudAnalytics/providers/Microsoft.Synapse/workspaces/bankingfraudanalyticssynapse/bigDataPools/testSpark",
+						"name": "testSpark",
+						"type": "Spark",
+						"endpoint": "https://bankingfraudanalyticssynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Hyperspace for Delta Lake\r\n",
+							"\r\n",
+							"[Hyperspace](https://github.com/microsoft/hyperspace) now supports Delta Lake as its data source. This notebook covers how Hyperspace works with Delta Lake tables and updates on the tables.\r\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Setup configurations"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"val sessionId = scala.util.Random.nextInt(1000000)\n",
+							"val dataPath = s\"/hyperspace/data-$sessionId\";\n",
+							"val indexLocation = s\"/hyperspace/indexes-$sessionId\"\n",
+							"\n",
+							"// Use a random index location to avoid conflicts while using the notebook.\n",
+							"spark.conf.set(\"spark.hyperspace.system.path\", indexLocation)\n",
+							"// Use HTML as a display mode.\n",
+							"spark.conf.set(\"spark.hyperspace.explain.displayMode\", \"html\")\n",
+							"// Enable Hybrid scan regardless of the amount of data being appended/deleted.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.maxAppendedRatio\", \"0.99\") // default: 0.3\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.maxDeletedRatio\", \"0.99\") // default: 0.2"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Data preparation"
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"import spark.implicits._\n",
+							"import org.apache.spark.sql.DataFrame\n",
+							"\n",
+							"// Sample department records\n",
+							"val departments = Seq(\n",
+							"  (10, \"Accounting\", \"New York\"),\n",
+							"  (20, \"Research\", \"Dallas\"),\n",
+							"  (30, \"Sales\", \"Chicago\"),\n",
+							"  (40, \"Operations\", \"Boston\"))\n",
+							"\n",
+							"// Sample employee records\n",
+							"val employees = Seq(\n",
+							"  (7369, \"SMITH\", 20),\n",
+							"  (7499, \"ALLEN\", 30),\n",
+							"  (7521, \"WARD\", 30),\n",
+							"  (7566, \"JONES\", 20),\n",
+							"  (7698, \"BLAKE\", 30),\n",
+							"  (7782, \"CLARK\", 10),\n",
+							"  (7788, \"SCOTT\", 20),\n",
+							"  (7839, \"KING\", 10),\n",
+							"  (7844, \"TURNER\", 30),\n",
+							"  (7876, \"ADAMS\", 20),\n",
+							"  (7900, \"JAMES\", 30),\n",
+							"  (7934, \"MILLER\", 10),\n",
+							"  (7902, \"FORD\", 20),\n",
+							"  (7654, \"MARTIN\", 30))\n",
+							"\n",
+							"val empData = employees.toDF(\"empId\", \"empName\", \"deptId\")\n",
+							"val deptData = departments.toDF(\"deptId\", \"deptName\", \"location\")\n",
+							"val empLocation = s\"$dataPath/employees\"\n",
+							"val deptLocation = s\"$dataPath/departments\"\n",
+							"empData.write.format(\"delta\").mode(\"overwrite\").save(empLocation)\n",
+							"deptData.write.format(\"delta\").mode(\"overwrite\").save(deptLocation)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"val empDF = spark.read.format(\"delta\").load(empLocation)\n",
+							"val deptDF = spark.read.format(\"delta\").load(deptLocation)\n",
+							"\n",
+							"// Disable BroadcastHashJoin so that Spark™ will use SortMergeJoin that Hyperspace indexes can optimize.\n",
+							"spark.conf.set(\"spark.sql.autoBroadcastJoinThreshold\", -1)\n",
+							"\n",
+							"val eqJoin =\n",
+							"  empDF.\n",
+							"  join(deptDF, empDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(empDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"eqJoin.show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Create Hyperspace indexes over Delta Lake tables\r\n",
+							"\r\n",
+							"Hyperspace supports Delta Lake through an extensible data source builder framework.\r\n",
+							"In order to create and apply Hyperspace indexes on Delta Lake tables, you need to register Delta Lake source builder.\r\n",
+							"\r\n",
+							"spark.conf.set(\"spark.hyperspace.index.sources.fileBasedBuilders\", \r\n",
+							"  \"**com.microsoft.hyperspace.index.sources.delta.DeltaLakeFileBasedSourceBuilder**,com.microsoft.hyperspace.index.sources.default.DefaultFileBasedSourceBuilder\")\r\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"import com.microsoft.hyperspace._\n",
+							"import com.microsoft.hyperspace.index._\n",
+							"\n",
+							"// Register delta table source builder.\n",
+							"spark.conf.set(\n",
+							"  \"spark.hyperspace.index.sources.fileBasedBuilders\",\n",
+							"  \"com.microsoft.hyperspace.index.sources.delta.DeltaLakeFileBasedSourceBuilder,\" +\n",
+							"    \"com.microsoft.hyperspace.index.sources.default.DefaultFileBasedSourceBuilder\")\n",
+							"\n",
+							"// Enable source lineage to support the scenario with deleted files.\n",
+							"spark.conf.set(\"spark.hyperspace.index.lineage.enabled\", \"true\")\n",
+							"\n",
+							"val hyperspace = Hyperspace()\n",
+							"\n",
+							"val empIndexConfig = IndexConfig(\"empIndex\", Seq(\"deptId\"), Seq(\"empName\"))\n",
+							"val deptIndexConfig = IndexConfig(\"deptIndex\", Seq(\"deptId\"), Seq(\"deptName\"))\n",
+							"\n",
+							"hyperspace.createIndex(empDF, empIndexConfig)\n",
+							"hyperspace.createIndex(deptDF, deptIndexConfig)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Enable Hypperspace to apply indexes.\n",
+							"// For simplicity, FilterIndexRule is disabled in this demo.\n",
+							"spark.enableHyperspace()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"// Scenario: check if newly created indexes are applied.\n",
+							"val eqJoin =\n",
+							"  empDF.\n",
+							"  join(deptDF, empDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(empDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"eqJoin.show\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Append data\r\n",
+							"\r\n",
+							"With Hybrid Scan, you can still utilize Hyperspace indexes after appending data to the table.\r\n",
+							""
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Add new employees.\n",
+							"val newEmployees = Seq(\n",
+							"  (8000, \"NEW-EMPLOYEE-1\", 30),\n",
+							"  (8001, \"NEW-EMPLOYEE-2\", 10),\n",
+							"  (8002, \"NEW-EMPLOYEE-3\", 20),\n",
+							"  (8003, \"NEW-EMPLOYEE-4\", 30))\n",
+							"\n",
+							"newEmployees.toDF(\"empId\", \"empName\", \"deptId\").write.format(\"delta\").mode(\"append\").save(empLocation)\n",
+							"\n",
+							"val latestEmpDF = spark.read.format(\"delta\").load(empLocation)\n",
+							"latestEmpDF.show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Scneario: Hybrid scan is off.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.enabled\", \"false\")\n",
+							"\n",
+							"val eqJoin =\n",
+							"  latestEmpDF.\n",
+							"  join(deptDF, latestEmpDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(latestEmpDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"eqJoin.show\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Scenario: Hybrid Scan is on.\n",
+							"spark.conf.set(\"spark.hyperspace.index.hybridscan.enabled\", \"true\")\n",
+							"\n",
+							"val eqJoin =\n",
+							"  latestEmpDF.\n",
+							"  join(deptDF, latestEmpDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(latestEmpDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }\n",
+							"\n",
+							"eqJoin.show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Incremental refresh\r\n",
+							"\r\n",
+							"Other than using Hybrid Scan, you can also incrementally build Hyperspace indexes only for appended and deleted data."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Incrementally build index on new employees only.\n",
+							"hyperspace.refreshIndex(\"empIndex\", \"incremental\")"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Show refreshed index only contains new data.\n",
+							"spark.read.parquet(s\"$indexLocation/empIndex/v__=1\").show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Scenario: Check if refreshed index is applied.\n",
+							"val eqJoin =\n",
+							"  latestEmpDF.\n",
+							"  join(deptDF, latestEmpDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(latestEmpDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }\n",
+							"\n",
+							"eqJoin.show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Update data\r\n",
+							"\r\n",
+							"Updated data to the table can be handled as deleted and appended data by using Hybrid Scan or Incremental refresh."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"import io.delta.tables._\n",
+							"import org.apache.spark.sql.functions._\n",
+							"\n",
+							"val empDeltaTable = DeltaTable.forPath(spark, empLocation)\n",
+							"\n",
+							"// Append \"SPEICAL\" to the \"NEW-EMPLOYEE-2\"'s name.\n",
+							"empDeltaTable.update(\n",
+							"   col(\"empName\") === (\"NEW-EMPLOYEE-2\"),\n",
+							"   Map(\"empName\" -> (concat(col(\"empName\"), lit(\"-SPECIAL\")))))\n",
+							"\n",
+							"empDeltaTable.history.show(truncate = false)\n",
+							"empDeltaTable.toDF.show(truncate = false)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Scneario: handle updated data.\n",
+							"val updatedEmpDF = empDeltaTable.toDF\n",
+							"val eqJoin =\n",
+							"  updatedEmpDF.\n",
+							"  join(deptDF, updatedEmpDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(updatedEmpDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"eqJoin.show(truncate = false)\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Enhancement of Delta Lake time travel query\r\n",
+							"\r\n",
+							"For a time travel query with an old table version, the latest version of the index can be used with Hybrid Scan, but usually there could be many appended and/or deleted files which reduce the benefit of indexes.\r\n",
+							"To optimize it, Hyperspace tracks the history of the index version and table version for each refresh time and selects the closest index version based on the history.\r\n",
+							"\r\n",
+							"\r\n",
+							"Note that this feature is not available in the current Hyperspace version and will be delivered in the next release."
+						],
+						"attachments": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Scenario: Time travel to initial version of employees.\n",
+							"val oldEmpOnlyDF = spark.read.format(\"delta\").option(\"versionAsOf\", 0).load(empLocation)\n",
+							"\n",
+							"val eqJoin =\n",
+							"  oldEmpOnlyDF.\n",
+							"  join(deptDF, oldEmpOnlyDF(\"deptId\") === deptDF(\"deptId\")).\n",
+							"  select(oldEmpOnlyDF(\"empName\"), deptDF(\"deptName\"))\n",
+							"\n",
+							"hyperspace.explain(eqJoin, verbose = true) { displayHTML(_) }\n",
+							"\n",
+							"eqJoin.show"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/testSpark')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 10
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 10,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.1",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westus2"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/transactionAnalytics')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westus2"
+		}
+	]
+}
