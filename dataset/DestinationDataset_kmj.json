@@ -1,0 +1,20 @@
+{
+	"name": "DestinationDataset_kmj",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "comsos",
+				"fileSystem": "excel"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
