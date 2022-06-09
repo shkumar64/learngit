@@ -1,0 +1,46 @@
+{
+	"name": "SourceDataset_kmj",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CosmosDb1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {
+			"type": "object",
+			"properties": {
+				"TransactionID": {
+					"type": "string"
+				},
+				"AccountNumber": {
+					"type": "string"
+				},
+				"Date": {
+					"type": "string"
+				},
+				"Time": {
+					"type": "string"
+				},
+				"ZipCustomer": {
+					"type": "string"
+				},
+				"VendorType": {
+					"type": "string"
+				},
+				"Device": {
+					"type": "string"
+				},
+				"Amount": {
+					"type": "integer"
+				},
+				"Method": {
+					"type": "string"
+				}
+			}
+		},
+		"typeProperties": {
+			"collectionName": "allTransaction"
+		}
+	}
+}
