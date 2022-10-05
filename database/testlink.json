@@ -1,0 +1,22 @@
+{
+	"name": "testlink",
+	"properties": {
+		"Name": "testlink",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://bankingfraudfs@synapseadlsfraud.dfs.core.windows.net/testlink",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "bankingfraudanalyticssynapse-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
